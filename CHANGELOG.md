@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Allow CommonMark for the `description` fields.
-- `name` is required rather than `description`
+- `classification:classes`: `name` is required rather than `description`
 
 ### Fixed
 

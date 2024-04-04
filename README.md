@@ -13,7 +13,7 @@ This document explains the Classification Extension to the
 - Examples:
   - Asset level:
     - [Classes example](examples/item-classes-maxar.json): STAC Item with classified raster bands in asset (Maxar)
-    - [Bitfields example](examples/item-bitfields-landsat.json): STAC Item with bitfields in asset (Landsat)
+    - [Bitfields example](examples/item-bitfields-landsat.json): STAC Item with bit fields in asset (Landsat)
   - Collection level:
     - [Item Assets example](examples/collection-item-assets.json): STAC Collection using Item Assets for classed child Items
 - [JSON Schema](json-schema/schema.json)
@@ -35,7 +35,7 @@ or band therein. These coded values translate to classes of data with verbose de
 An example would be a cloud mask raster that stores values that represent image conditions in each pixel.
 
 `classification:bitfields` is for classes that are stored in fields of continuous bits within the pixel's value.
-Files using this strategy are commonly given the name 'bitmask' or 'bit index'. The values stored are the integer
+Files using this strategy are commonly given the name 'bit mask' or 'bit index'. The values stored are the integer
 representation of the bits in the field when summed as an isolated string. Bits are always read right to left. The
 position of the first bit in a field is given by its offset. Therefore the first (rightmost) bit is at offset zero.
 
@@ -51,14 +51,14 @@ These classification objects can be used in the following places:
 
 *Describes multiple classes stored in a field of a continuous range of bits*
 
-| Field Name  | Type       | Description                                                                                                                           |
-| ----------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| offset      | `integer`  | **REQUIRED.** Offset to first bit in the field                                                                                        |
-| length      | `integer`  | **REQUIRED.** Number of bits in the field                                                                                             |
-| classes     | `[Class]`  | **REQUIRED.** Classes represented by the field values                                                                                 |
-| roles       | `[string]` | see [Asset Roles](https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md#asset-roles)                           |
+| Field Name  | Type       | Description                                                  |
+| ----------- | ---------- | ------------------------------------------------------------ |
+| offset      | `integer`  | **REQUIRED.** Offset to first bit in the field               |
+| length      | `integer`  | **REQUIRED.** Number of bits in the field                    |
+| classes     | `[Class]`  | **REQUIRED.** Classes represented by the field values        |
+| name        | `string`   | Short name of the class for machine readability. Must consist only of letters, numbers, `-`, and `_` characters. |
 | description | `string`   | A short description of the classification. [CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich text representation. |
-| name        | `string`   | Short name of the class for machine readability                                                                                       |
+| roles       | `[string]` | see [Asset Roles](https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md#asset-roles) |
 
 A Bit Field stores classes within a range of bits in a data value. The range is described by the offset of the first
 bit from the rightmost position, and the length of bits used to store the class values.
@@ -66,7 +66,7 @@ bit from the rightmost position, and the length of bits used to store the class 
 Since bit fields are often used to store data masks, they can also use optional STAC roles to identify their purpose
 to clients.
 
-Following is a simplified example a bitfield scheme for cloud data using 4 bits. The bits are broken into 3 bit fields.
+Following is a simplified example a bit field scheme for cloud data using 4 bits. The bits are broken into 3 bit fields.
 
 ```{.txt}
 3210
@@ -89,7 +89,7 @@ To extract the values in a bit field from a value called `data`, you typically w
 This does:
 
 - `data >> offset` right-shifts the bits in the `data` value `offset` number of times
-- `(1 << length) - 1` gives us `length` number of 1 bits going right to left, which gives us a bitmask
+- `(1 << length) - 1` gives us `length` number of 1 bits going right to left, which gives us a bit mask
 - ANDing (`&`) the values together gives the binary representation of the class value
 
 An example of finding the cloud confidence class value from the 4 bit example above for the data value of integer `6`:
@@ -97,12 +97,12 @@ An example of finding the cloud confidence class value from the 4 bit example ab
 - Integer 6 is `0110` in binary
 - We want to extract the field at `offset:2, length:2`
 - First, right-shift twice (`0110 >> 2`), which results in `1001`
-- Next, make the bitmask, which is 2 left shifts of `0001` to get `0100` (integer 4), then subtract 1 to
+- Next, make the bit mask, which is 2 left shifts of `0001` to get `0100` (integer 4), then subtract 1 to
   get `0011` (integer 3)
 - AND these two values together `1001 & 0011` and you get `0001`, or integer 1
 - Therefore at this pixel the cloud confidence field is storing class 1
 
-The key distinction with bit fields from other types of bitmasks is that the bits in the field are summed
+The key distinction with bit fields from other types of bit masks is that the bits in the field are summed
 as standalone bits. Therefore `01..` cloud confidence class uses the value of 1, not 4 (binary `0100`)
 
 For a real world example, see [Landsat 8's Quality raster](https://www.usgs.gov/media/images/landsat-1-8-collection-1-level-1-quality-bit-designations).
@@ -113,12 +113,12 @@ For a real world example, see [Landsat 8's Quality raster](https://www.usgs.gov/
 
 | Field Name  | Type       | Description                                                                                                          |
 | ----------- | ---------- | -------------------------------------------------------------------------------------------------------------------- |
-| value       | `integer`  | **REQUIRED.** Value of the class                                                                                     |
-| description | `string`   | Description of the class. [CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich text representation. |
-| name        | `string`   | **REQUIRED.** Short name of the class for machine readability. Must consist only of letters, numbers, `-`, and `_` characters.                                                        |
-| title       | `string` | Human-readable name for use in, e.g., a map legend. |
-| color_hint  | RGB string | suggested color for rendering (Hex RGB code in upper-case without leading #)                                         |
-| nodata      | `boolean`  | If set to `true` classifies a value as a no-data value, defaults to `false`                                          |
+| value       | integer  | **REQUIRED.** Value of the class                                                                                     |
+| name        | string   | **REQUIRED.** Short name of the class for machine readability. Must consist only of letters, numbers, `-`, and `_` characters.                                                        |
+| title       | string | Human-readable name for use in, e.g., a map legend. |
+| description | string   | Description of the class. [CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich text representation. |
+| color_hint  | string | Suggested color for rendering (Hex RGB code in upper-case without leading #)                                        |
+| nodata      | boolean  | If set to `true` classifies a value as a no-data value, defaults to `false`                                          |
 
 Class objects enumerate data values and their corresponding classes.
 A cloud mask raster could contain the following four classes:
@@ -145,7 +145,7 @@ Instructions for running tests are copied here for convenience.
 
 ### Running tests
 
-The same checks that run as checks on PR's are part of the repository and can be run locally to verify that changes
+The same checks that run as checks on PRs are part of the repository and can be run locally to verify that changes
 are valid.
 To run tests locally, you'll need `npm`, which is a standard part of any
 [node.js installation](https://nodejs.org/en/download/).
